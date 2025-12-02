@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 
 import in.tech_camp.chat_app.custom_user.CustomUserDetail;
 import in.tech_camp.chat_app.entity.RoomEntity;
+import in.tech_camp.chat_app.entity.RoomUserEntity;
 import in.tech_camp.chat_app.entity.UserEntity;
 import in.tech_camp.chat_app.form.RoomForm;
 import in.tech_camp.chat_app.repository.RoomRepository;
@@ -64,7 +65,18 @@ public class RoomController {
       model.addAttribute("roomForm", new RoomForm());
       return "rooms/new";
     }
-
     return "redirect:/";
+  }
+
+  @GetMapping("/")
+  public String index(@AuthenticationPrincipal CustomUserDetail currentUser, Model model) {
+    UserEntity user = userRepository.findById(currentUser.getId());
+    model.addAttribute("user", user);
+    List<RoomUserEntity> roomUserEntities = roomUserRepository.findByUserId(currentUser.getId());
+    List<RoomEntity> roomList = roomUserEntities.stream()
+        .map(RoomUserEntity::getRoom)
+        .collect(Collectors.toList());
+    model.addAttribute("rooms", roomList);
+    return "rooms/index";
   }
 }
