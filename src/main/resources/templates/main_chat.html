@@ -1,19 +1,24 @@
+<!-- main_chat.html -->
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" lang="ja">
 <div th:fragment="main_chat">
   <div class="chat-header">
     <div class="left-header">
-      <div class="header-title" th:text="${room.name}">ルーム名</div>
+      <!-- room が null でない場合にのみ room.name を表示する -->
+      <div class="header-title" th:if="${room != null}" th:text="${room.name}">ルーム名</div>
+      <div class="header-title" th:unless="${room != null}">無効なルーム</div>
     </div>
     <div class="right-header">
       <div class="header-button">
-        <form th:action="@{/rooms/{roomId}/delete(roomId=${room.id})}" method="post">
+        <!-- room が null でない場合にのみフォームを表示する -->
+        <form th:if="${room != null}" th:action="@{/rooms/{roomId}/delete(roomId=${room.id})}" method="post">
           <input type="submit" value="チャットを終了する"/>
         </form>
       </div>
     </div>
   </div>
  <div class="messages">
+    <!-- messages リストはコントローラーで空リストが渡されることが多いので、th:eachはそのままでOK -->
     <div th:each="message : ${messages}" class="message">
       <div class="upper-message">
         <div class="message-user" th:text="${message.user.name}">ユーザー名</div>
@@ -22,13 +27,11 @@
       <div class="lower-message">
         <div class="message-content" th:text="${message.content}">メッセージ内容</div>
       </div>
-            <div th:if="${message.image}">
-        <img th:src="@{${message.image}}" alt="メッセージ画像" style="width: 500px; height: 500px;"/>
-      </div>
     </div>
   </div>
 
-  <form th:action="@{/rooms/{roomId}/messages(roomId=${room.id})}" method="post" th:object="${messageForm}" class="form" enctype="multipart/form-data">
+  <!-- room が null でない場合にのみ送信フォームを表示する -->
+  <form th:if="${room != null}" th:action="@{/rooms/{roomId}/messages(roomId=${room.id})}" method="post" th:object="${messageForm}" class="form" enctype="multipart/form-data">
     <div class="form-input">
       <input th:field="*{content}" class="form-message" placeholder= "type a message">
       <label class="form-image">
