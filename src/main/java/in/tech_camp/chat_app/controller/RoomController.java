@@ -43,31 +43,42 @@ public class RoomController {
   }
 
   @PostMapping("/rooms")
-  public String createRoom(@ModelAttribute("RoomForm") @Validated(ValidationOrder.class) RoomForm roomForm, BindingResult bindingResult, @AuthenticationPrincipal CustomUserDetail currentUser, Model model){
+public String createRoom(
+    @ModelAttribute("RoomForm") @Validated(ValidationOrder.class) RoomForm roomForm,
+    BindingResult bindingResult,
+    @AuthenticationPrincipal CustomUserDetail currentUser,
+    Model model
+) {
     if (bindingResult.hasErrors()) {
-      List<String> errorMessages = bindingResult.getAllErrors().stream()
-                              .map(DefaultMessageSourceResolvable::getDefaultMessage)
-                              .collect(Collectors.toList());
-      List<UserEntity> users = userRepository.findAllExcept(currentUser.getId());
-      model.addAttribute("users", users);
-      model.addAttribute("roomForm", roomForm);
-      model.addAttribute("errorMessages", errorMessages);
-      return "rooms/new";
+        List<String> errorMessages = bindingResult.getAllErrors().stream()
+            .map(DefaultMessageSourceResolvable::getDefaultMessage)
+            .collect(Collectors.toList());
+        List<UserEntity> users = userRepository.findAllExcept(currentUser.getId());
+        model.addAttribute("users", users);
+        model.addAttribute("roomForm", roomForm);
+        model.addAttribute("errorMessages", errorMessages);
+        return "rooms/new";
     }
 
+    // 1. roomsテーブルにルームを保存
     RoomEntity roomEntity = new RoomEntity();
     roomEntity.setName(roomForm.getName());
-    try {
-      roomRepository.insert(roomEntity);
-    } catch (Exception e) {
-      System.out.println("エラー：" + e);
-      List<UserEntity> users = userRepository.findAllExcept(currentUser.getId());
-      model.addAttribute("users", users);
-      model.addAttribute("roomForm", new RoomForm());
-      return "rooms/new";
+    roomRepository.insert(roomEntity); // ここでroomEntityにIDが生成される
+
+    // 2. ルームに参加するユーザーをroom_usersに保存
+    for (Integer memberId : roomForm.getMemberIds()) {
+        UserEntity userEntity = userRepository.findById(memberId);
+
+        RoomUserEntity roomUserEntity = new RoomUserEntity();
+        roomUserEntity.setRoom(roomEntity);
+        roomUserEntity.setUser(userEntity);
+
+        roomUserRepository.insert(roomUserEntity);
     }
-    return "redirect:/";
-  }
+
+    // 3. メッセージ一覧へリダイレクト
+    return "redirect:/rooms/" + roomEntity.getId() + "/messages";
+}
 
   @GetMapping("/")
   public String index(@AuthenticationPrincipal CustomUserDetail currentUser, Model model) {

@@ -17,8 +17,8 @@ public interface RoomUserRepository {
   @Options(useGeneratedKeys = true, keyProperty = "id")
   void insert(RoomUserEntity userRoomEntity);
 
-  @Select("SELECT * FROM room_users WHERE user_id = #{user.id}")
-  @Result(property = "room", column="room_id",
-          one = @One(select= "in.tech_camp.chat_app.repository.RoomRepository.findById"))
+  @Select("SELECT * FROM room_users WHERE user_id = #{userId}")
+  @Result(property = "room", column = "room_id",
+          one = @One(select = "in.tech_camp.chat_app.repository.RoomRepository.findById"))
   List<RoomUserEntity> findByUserId(Integer userId);
 }
