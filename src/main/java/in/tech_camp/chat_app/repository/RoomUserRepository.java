@@ -21,4 +21,5 @@ public interface RoomUserRepository {
   @Result(property = "room", column = "room_id",
           one = @One(select = "in.tech_camp.chat_app.repository.RoomRepository.findById"))
   List<RoomUserEntity> findByUserId(Integer userId);
+
 }
